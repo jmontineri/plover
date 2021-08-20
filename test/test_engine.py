@@ -51,6 +51,9 @@ class FakeMachine(StenotypeBase):
 
 class FakeKeyboardEmulation:
 
+    def set_time_between_key_presses(self, ms):
+        pass
+
     def send_backspaces(self, b):
         pass
 

@@ -27,6 +27,7 @@ import os
 import string
 import select
 import threading
+from time import sleep
 
 from Xlib import X, XK, display
 from Xlib.ext import xinput, xtest
@@ -1166,6 +1167,10 @@ class KeyboardEmulation:
         """Prepare to emulate keyboard events."""
         self._display = display.Display()
         self._update_keymap()
+        self._time_between_key_presses = 0
+
+    def set_time_between_key_presses(self, ms):
+        self._time_between_key_presses = ms
 
     def _update_keymap(self):
         '''Analyse keymap, build a mapping of keysym to (keycode + modifiers),
@@ -1238,6 +1243,9 @@ class KeyboardEmulation:
         for x in range(number_of_backspaces):
             self._send_keycode(self._backspace_mapping.keycode,
                                self._backspace_mapping.modifiers)
+            if self._time_between_key_presses != 0:
+                self._display.sync()
+                sleep(self._time_between_key_presses / 1000)
         self._display.sync()
 
     def send_string(self, s):
@@ -1257,6 +1265,9 @@ class KeyboardEmulation:
                 continue
             self._send_keycode(mapping.keycode,
                                mapping.modifiers)
+            if self._time_between_key_presses != 0:
+                self._display.sync()
+                sleep(self._time_between_key_presses / 1000)
         self._display.sync()
 
     def send_key_combination(self, combo_string):
@@ -1289,6 +1300,9 @@ class KeyboardEmulation:
         # Emulate the key combination by sending key events.
         for keycode, event_type in key_events:
             xtest.fake_input(self._display, event_type, keycode)
+            if self._time_between_key_presses != 0:
+                self._display.sync()
+                sleep(self._time_between_key_presses / 1000)
         self._display.sync()
 
     def _send_keycode(self, keycode, modifiers=0):
